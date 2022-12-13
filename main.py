@@ -43,7 +43,7 @@ def create_label(image_name):
         return np.array([0, 0, 0, 0, 0, 1])
 
 
-def load_images_from_folder(folder):
+def load_images_train_from_folder(folder):
     ''' Create a list of images for train and test
 
         folder:argument
@@ -60,12 +60,24 @@ def load_images_from_folder(folder):
     return images
 
 
-train = load_images_from_folder(TRAIN_DIR)
-# test = load_images_from_folder(TEST_DIR)
+def load_images_test_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        img = cv2.imread(os.path.join(folder, filename), 1)
+        img_normalized = img / 255.0
+        img_data = cv2.resize(img_normalized, (IMG_SIZE, IMG_SIZE))
+        if img is not None:
+            images.append([np.array(img_data)])
+    return images
 
+
+train = load_images_train_from_folder(TRAIN_DIR)
+test = load_images_test_from_folder(TEST_DIR)
 
 X_train = np.array([i[0] for i in train]).reshape((-1, IMG_SIZE, IMG_SIZE, 3))
 y_train = [i[1] for i in train]
+
+X_test = np.array([i for i in test]).reshape((-1, IMG_SIZE, IMG_SIZE, 3))
 
 network = input_data(shape=[None, IMG_SIZE, IMG_SIZE, 3])
 network = conv_2d(network, 32, 3, activation='relu')
@@ -91,9 +103,20 @@ else:
     model.fit(X_train, y_train, n_epoch=10, show_metric=True)
     model.save('model.tfl')
 
-# # Convert into Numpy array
-# samples_to_predict = np.array(samples_to_predict)
-#
-# # Generate predictions for samples
-# predictions = model.predict(samples_to_predict)
+# Convert into Numpy array
+# samples_to_predict = np.array(X_test)
+
+# Generate predictions for samples
+# predictions = model.predict(X_test)[0]
 # print(predictions)
+
+
+# def plot_sample(X, y):
+#     # X : one Image data
+#     # y : label (0 to 5)
+#     plt.figure(figsize=(15, 4))
+#     plt.imshow(X)
+#     plt.xlabel(y)
+#
+#
+# plot_sample(X_test[0], predictions)
