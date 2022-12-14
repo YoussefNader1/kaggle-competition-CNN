@@ -1,8 +1,8 @@
 import os
 from random import shuffle
-
+import csv
+import pandas as pd
 from matplotlib import pyplot as plt
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import numpy as np
 import tensorflow as tf
@@ -62,17 +62,19 @@ def load_images_train_from_folder(folder):
 
 def load_images_test_from_folder(folder):
     images = []
+    images_names = []
     for filename in os.listdir(folder):
         img = cv2.imread(os.path.join(folder, filename), 1)
         img_normalized = img / 255.0
         img_data = cv2.resize(img_normalized, (IMG_SIZE, IMG_SIZE))
         if img is not None:
             images.append([np.array(img_data)])
-    return images
+            images_names.append(filename)
+    return images, images_names
 
 
 train = load_images_train_from_folder(TRAIN_DIR)
-test = load_images_test_from_folder(TEST_DIR)
+test, images_names = load_images_test_from_folder(TEST_DIR)
 
 X_train = np.array([i[0] for i in train]).reshape((-1, IMG_SIZE, IMG_SIZE, 3))
 y_train = [i[1] for i in train]
@@ -92,31 +94,37 @@ network = regression(network, optimizer='adam',
                      loss='categorical_crossentropy',
                      learning_rate=0.001)
 
-# print(X_train)
-# print(y_train)
-# Train using classifier
 model = tflearn.DNN(network, tensorboard_verbose=0)
 
 if (os.path.exists('model.tfl.meta')):
     model.load('./model.tfl')
 else:
-    model.fit(X_train, y_train, n_epoch=50, show_metric=True)
+    model.fit(X_train, y_train, n_epoch=82, show_metric=True)
     model.save('model.tfl')
-
-# Convert into Numpy array
-# samples_to_predict = np.array(X_test)
 
 # Generate predictions for samples
 predictions = model.predict(X_test)
-print(predictions[0])
+# print(test[0])
+# print(predictions[0])
 
+# create prediction list for csv file
+pred = []
+for prediction in predictions:
+    max_val = np.argmax(prediction)
+    pred.append(max_val)
+# print(pred)
 
-# def plot_sample(X, y):
-#     # X : one Image data
-#     # y : label (0 to 5)
-#     plt.figure(figsize=(15, 4))
-#     plt.imshow(X)
-#     plt.xlabel(y)
-#
-#
-# plot_sample(X_test[0], predictions)
+# create csv file
+headers = ["image_name", "label"]  # create column headers for csv file
+OutPut_list = []
+for i in range(len(pred)):
+    x = [images_names[i], pred[i]]
+    OutPut_list.append(x)
+with open("Sports.csv", "w") as Sport:
+    student = csv.writer(Sport)
+    student.writerow(headers)
+    student.writerows(OutPut_list)
+
+# Show summary
+df = pd.read_csv('Sports.csv')
+print(df)
