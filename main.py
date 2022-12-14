@@ -100,15 +100,15 @@ model = tflearn.DNN(network, tensorboard_verbose=0)
 if (os.path.exists('model.tfl.meta')):
     model.load('./model.tfl')
 else:
-    model.fit(X_train, y_train, n_epoch=10, show_metric=True)
+    model.fit(X_train, y_train, n_epoch=50, show_metric=True)
     model.save('model.tfl')
 
 # Convert into Numpy array
 # samples_to_predict = np.array(X_test)
 
 # Generate predictions for samples
-# predictions = model.predict(X_test)[0]
-# print(predictions)
+predictions = model.predict(X_test)
+print(predictions[0])
 
 
 # def plot_sample(X, y):
