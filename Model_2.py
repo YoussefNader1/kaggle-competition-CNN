@@ -63,17 +63,19 @@ def load_images_train_from_folder(folder):
 
 def load_images_test_from_folder(folder):
     images = []
+    images_names = []
     for filename in os.listdir(folder):
         img = cv2.imread(os.path.join(folder, filename), 1)
         img_normalized = img / 255.0
         img_data = cv2.resize(img_normalized, (IMG_SIZE, IMG_SIZE))
         if img is not None:
             images.append([np.array(img_data)])
-    return images
+            images_names.append(filename)
+    return images , images_names
 
 
 train = load_images_train_from_folder(TRAIN_DIR)
-test = load_images_test_from_folder(TEST_DIR)
+test,images_names = load_images_test_from_folder(TEST_DIR)
 
 X_train = np.array([i[0] for i in train]).reshape((-1, IMG_SIZE, IMG_SIZE, 3))
 y_train = [i[1] for i in train]
